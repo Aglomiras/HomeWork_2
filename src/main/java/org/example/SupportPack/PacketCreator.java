@@ -1,4 +1,4 @@
-package org.example;
+package org.example.SupportPack;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -6,93 +6,10 @@ import lombok.SneakyThrows;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 public class PacketCreator {
-//    [2, 0, 0, 0, 69, 0, 0, (byte)35, (byte)117, 57, (byte)159, 0, 0, 80, 11, 0, 0, 3, 2, 72, 10, 3, 2, 72, -12, 85, 4, -80, 0, 16, 121, 9, 104, 101, 108, 108, 111, 32, 49, 55]
-//hello 17
-//    {2, 0, 0, 0, 69, 0, 0, 36, 117, 91, 0, 0, -128, 17, 0, 0, 10, 3, 2, 72, 10, 3, 2, 72, -12, 85, 4, -80, 0, 16, 121, 9, 104, 101, 108, 108, 111, 32, 49, 55}
-    //[2, 0, 0, 0, 69, 0, 0, 36, 117, 91, 0, 0, -128, 17, 0, 0, 10, 3, 2, 72, 10, 3, 2, 72, -12, 85, 4, -80, 0, 16, 121, 9]
-
-    public byte[] creator(String data) {
-        byte[] dataCreat = new byte[500];
-        byte[] dataUdp = new byte[]{2, 0, 0, 0, 69, 0, 0, 36, 117, 91, 0, 0, -128, 17, 0, 0, 10, 3, 2, 72, 10, 3, 2, 72, -12, 85, 4, -80, 0, 16, 121, 9};
-        byte[] strData = data.getBytes();
-
-        return dataUdp;
-    }
-
-    public byte[] create(String data) {
-        int len = data.getBytes().length + 20 + 8;
-        byte len1 = (byte) (len >> 8 & 255);
-        byte len2 = (byte) (len & 255);
-
-        List<Byte> bytes = new ArrayList<>();
-        byte[] start = {2, 0, 0, 0, 69, 0, len1, len2, (byte) 195, (byte) 164, 0, 0, (byte) 128, 17, 0, 0,
-                (byte) 172, (byte) 20, (byte) 10, (byte) 9,
-                (byte) 172, (byte) 20, (byte) 10, (byte) 9};
-        for (byte b : start) {
-            bytes.add(b);
-        }
-        System.out.println("bytes: " + bytes);
-
-        List<Byte> UDPbytes = new ArrayList<>();
-        int dPort = 56878;
-        byte dPortb1 = (byte) (dPort >> 8 & 255);
-        bytes.add(dPortb1);
-
-
-        byte dPortb2 = (byte) (dPort & 255);
-        bytes.add(dPortb2);
-        System.out.println("dPortb2: " + dPortb2);
-
-        System.out.println("dPortb1: " + dPort + " " + (((dPortb1 & 0xFF) << 8) + (dPortb2 & 0xFF)));
-
-        int sPort = 1200;
-        byte sPortb1 = (byte) (sPort >> 8 & 255);
-        bytes.add(sPortb1);
-        int val = ((sPortb1 & 0xFF));
-        System.out.println("sPortb1: " + val);
-
-        byte sPortb2 = (byte) (sPort & 255);
-        bytes.add(sPortb2);
-        System.out.println("sPortb2:" + sPortb2);
-
-        int length = data.getBytes().length + 8;
-        System.out.println("length: " + length);
-
-        byte length1 = (byte) (length >> 8 & 255);
-        bytes.add(length1);
-        System.out.println("length1: " + length1);
-
-        byte length2 = (byte) (length & 255);
-        bytes.add(length2);
-        System.out.println("length2: " + length2);
-
-        bytes.add((byte) 0);
-        bytes.add((byte) 0);
-
-        System.out.println("bytes: " + bytes);
-
-        for (byte aByte : data.getBytes()) {
-            bytes.add(aByte);
-        }
-        System.out.println("bytes: " + bytes);
-
-        byte[] massByte = new byte[bytes.size()];
-        int i = 0;
-        for (Byte aByte : bytes) {
-            massByte[i] = aByte;
-            i++;
-        }
-        System.out.println("massByte: " + massByte);
-
-        return massByte;
-    }
 
     private String iface = "";
 

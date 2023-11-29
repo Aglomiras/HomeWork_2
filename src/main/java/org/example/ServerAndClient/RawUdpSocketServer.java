@@ -1,20 +1,24 @@
 package org.example.ServerAndClient;
 
 import com.sun.jna.NativeLibrary;
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.pcap4j.core.*;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Data
 public class RawUdpSocketServer {
+    protected boolean flagLiveAgent = true;
+
     static {
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
             NativeLibrary.addSearchPath("wpcap", "C:\\Windows\\System32\\Npcap");
         }
     }
 
-    protected boolean run = true;
+
 
     @SneakyThrows
     public void start(int port) {
@@ -45,7 +49,7 @@ public class RawUdpSocketServer {
                 System.out.println(Arrays.toString(rawData));
                 System.arraycopy(rawData, 32, data, 0, data.length);
                 System.out.println(new String(data).replace("\000", ""));
-                if (!run) {
+                if (!flagLiveAgent) {
                     try {
                         pcapHandle.breakLoop();
                     } catch (NotOpenException e) {

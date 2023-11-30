@@ -1,94 +1,114 @@
 package org.example.SupportPack;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
-@AllArgsConstructor
-@NoArgsConstructor
 public class PacketCreator {
-
-    private String iface = "";
-
     @SneakyThrows
-    public byte[] collectPacket(String data, int portToSend) {
-        byte[] platformDescBytes = data.getBytes();
-        int dataLength = platformDescBytes.length;
-        int totalLength = dataLength + 28;
+    public byte[] create(String data) {
+        byte[] createByte = data.getBytes();
+        /**Total Length*/
+        int fullPacketLength = createByte.length + 28;
+        byte[] packCreat = new byte[fullPacketLength + 4];
 
-        byte[] packet = new byte[totalLength + (iface.equals("\\Device\\NPF_Loopback") ? 4 : 14)];
-        /* send to all*/
+        /**
+         * Выделение необходимой информации:
+         * создадим переменные, которые должны будут содержать необходимую информацию, для передеачи в пакет;
+         * */
+
+        /**Family: IP(2) + Version + Differentiated Services*/
+        byte[] oneByte = {2, 0, 0, 0, 69, 0};
+
+        /**Source Address*/
+        byte[] ipSourceBytes = InetAddress.getByName("192.168.56.1").getAddress();
+
+        /**Destination Address*/
         byte[] ipDestinationBytes = InetAddress.getByName("255.255.255.255").getAddress();
-        byte[] ipSourceBytes = InetAddress.getByName("127.0.0.1").getAddress();
 
-        /* set NPF_Loopback as iface to use. WORKS ONLY FOR WINDOWS*/
-        for (int i = 0, j = 7; i < 1; i++, j++) {
-            packet[i] = longToBytes(0x02)[j];
+        /**Source Port*/
+        int sourcePort = 57742;
+        byte sourcePortB = (byte) (sourcePort >> 8 & 255);
+        byte sourcePortBc = (byte) (sourcePort & 255);
+
+        /**Destination Port*/
+        int destPort = 1200;
+        byte destPortB = (byte) (destPort >> 8 & 255);
+        byte destPortBc = (byte) (destPort & 255);
+
+        /**Identification*/
+        int indent = 30139;
+        byte indentB = (byte) (indent >> 8 & 255);
+        byte indentBc = (byte) (indent & 255);
+
+        /**Time to Live + Protocol: UDP*/
+        byte[] twoByte = {(byte) 128, 17};
+
+        /**
+         * Формирование пакета:
+         * вносим байты в свои позиции в пакете;
+         * */
+
+        /**Add Family: IP(2) + Version + Differentiated Services*/
+        for (int i = 0; i < oneByte.length; i++) {
+            packCreat[i] = oneByte[i];
         }
 
-        //Header Length = 20 bytes
-        for (int i = 4, j = 7; i < 5; i++, j++) {
-            packet[i] = longToBytes(69)[j];
-        }
-        //Differentiated Services Field
-        for (int i = 5, j = 7; i < 6; i++, j++) {
-            packet[i] = longToBytes(0x00)[j];
-        }
-        //Total Length
+        /**Add Total Length*/
         for (int i = 6, j = 6; i < 8; i++, j++) {
-            packet[i] = longToBytes(totalLength)[j];
+            packCreat[i] = longToBytes(fullPacketLength)[j];
         }
-        //Identification - for fragmented packages
-        for (int i = 8, j = 6; i < 10; i++, j++) {
-            packet[i] = longToBytes(33500)[j];
-        }
-        //Flag, Fragment Offset - for fragmented packages
+
+        /**Add Identification*/
+        packCreat[8] = indentB;
+        packCreat[9] = indentBc;
+
+        /**Add Flag, Fragment Offset*/
         for (int i = 10, j = 6; i < 12; i++, j++) {
-            packet[i] = longToBytes(0x00)[j];
+            packCreat[i] = longToBytes(0x00)[j];
         }
-        //Time to Live - max limit for moving through the network
-        for (int i = 12, j = 7; i < 13; i++, j++) {
-            packet[i] = longToBytes(128)[j];
+
+        /**Add Time to Live + Protocol: UDP*/
+        for (int i = 12; i < twoByte.length + 12; i++) {
+            packCreat[i] = twoByte[i - 12];
         }
-        //Protocol - UDP
-        for (int i = 13, j = 7; i < 14; i++, j++) {
-            packet[i] = longToBytes(17)[j];
-        }
-        //Header Checksum, can be 0x00 if it is not calculated
+
+        /**Add Header Checksum*/
         for (int i = 14, j = 6; i < 16; i++, j++) {
-            packet[i] = longToBytes(0x00)[j];
+            packCreat[i] = longToBytes(0x00)[j];
         }
 
+        /**Add Source Address*/
         for (int i = 16, j = 0; i < 20; i++, j++) {
-            packet[i] = ipSourceBytes[j];
+            packCreat[i] = ipSourceBytes[j];
         }
+        /**Add Destination Address*/
         for (int i = 20, j = 0; i < 24; i++, j++) {
-            packet[i] = ipDestinationBytes[j];
+            packCreat[i] = ipDestinationBytes[j];
         }
-        //Source port
-        for (int i = 24, j = 6; i < 26; i++, j++) {
-            packet[i] = longToBytes(portToSend)[j];
-        }
-        //Destination port
-        for (int i = 26, j = 6; i < 28; i++, j++) {
-            packet[i] = longToBytes(portToSend)[j];
-        }
-        //Length
-        int length = totalLength - 20;
 
+        /**Add Source Port*/
+        packCreat[24] = sourcePortB;
+        packCreat[25] = sourcePortBc;
+
+        /**Add Destination Port*/
+        packCreat[26] = destPortB;
+        packCreat[27] = destPortBc;
+
+        /**Add Length*/
         for (int i = 28, j = 6; i < 30; i++, j++) {
-            packet[i] = longToBytes(length)[j];
+            packCreat[i] = longToBytes(fullPacketLength - 20)[j];
         }
-        //Checksum, can be 0x00 if it is not calculated
+
+        /**Add Checksum*/
         for (int i = 30, j = 6; i < 32; i++, j++) {
-            packet[i] = longToBytes(0x0000)[j];
+            packCreat[i] = longToBytes(0x0000)[j];
         }
-        //Data
-        System.arraycopy(platformDescBytes, 0, packet, 32, platformDescBytes.length);
-        return packet;
+
+        /**Итоговое формирование пакета*/
+        System.arraycopy(createByte, 0, packCreat, 32, createByte.length);
+        return packCreat;
     }
 
     private byte[] longToBytes(long x) {

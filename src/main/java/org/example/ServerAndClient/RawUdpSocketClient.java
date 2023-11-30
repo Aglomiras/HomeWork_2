@@ -1,5 +1,6 @@
 package org.example.ServerAndClient;
 
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNetworkInterface;
@@ -7,12 +8,16 @@ import org.pcap4j.core.Pcaps;
 
 import java.util.List;
 
+@Data
 public class RawUdpSocketClient {
     private PcapHandle pcapHandle;
+    private boolean flagLiveAgent = true; //Флаг для остановки отпраки пакетов
 
     @SneakyThrows
     public void send(byte[] data) {
-        pcapHandle.sendPacket(data);
+        if (flagLiveAgent) {
+            pcapHandle.sendPacket(data);
+        }
     }
 
     @SneakyThrows

@@ -27,12 +27,12 @@ public class JadeStarter {
         Runtime.instance().createMainContainer(p);
     }
 
-    private static String addAgents(Map<String, Class<?>> createAgents){
+    private static String addAgents(Map<String, Class<?>> createAgents) {
         String outString = "";
         for (Map.Entry<String, Class<?>> entry : createAgents.entrySet()) {
-            outString += entry.getKey()+":"+entry.getValue().getName()+";";
+            outString += entry.getKey() + ":" + entry.getValue().getName() + ";";
         }
-        System.out.println(outString);
+        System.out.println(outString.toString());
         return outString;
     }
 
